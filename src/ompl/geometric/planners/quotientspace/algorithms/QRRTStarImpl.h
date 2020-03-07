@@ -92,7 +92,7 @@ namespace ompl
             double d_{0};
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
+            base::Cost bestCost_{std::numeric_limits<double>::max()};
 
             /** \brief best goal motion. */
             Configuration *bestGoalConfiguration_{nullptr};

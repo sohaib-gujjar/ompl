@@ -211,7 +211,7 @@ ompl::base::PlannerStatus ompl::geometric::BundleSpaceSequenceDynamic<T>::solve(
                 }else{
                     solutions_.at(k) = sol_k;
                 }
-
+                foundKLevelSolution_ = true;
                 // add solution to pdef
                 ompl::base::PlannerSolution psol(sol_k);
                 std::string lvl_name = getName() + " LvL" + std::to_string(k);

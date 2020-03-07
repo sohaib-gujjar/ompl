@@ -349,7 +349,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         motion->incCost = incCosts[*i];
                         motion->cost = costs[*i];
                         motion->parent = nbh[*i];
-                        valid[*i] = 1;
                         break;
                     }
                     else
@@ -375,7 +374,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                                 motion->incCost = incCosts[i];
                                 motion->cost = costs[i];
                                 motion->parent = nbh[i];
-                                valid[i] = 1;
                             }
                             else
                                 valid[i] = -1;
@@ -449,7 +447,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
 
                             // Update the costs of the node's children
                             updateChildCosts(nbh[i]);
-
                             checkForSolution = true;
                         }
                     }
@@ -460,6 +457,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
             double distanceFromGoal;
             if (goal->isSatisfied(motion->state, &distanceFromGoal))
             {
+                std::cout << "---------goal satisfied------------cost_" << motion->cost << std::endl;
                 motion->inGoal = true;
                 goalMotions_.push_back(motion);
                 checkForSolution = true;
@@ -471,6 +469,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 bool updatedSolution = false;
                 if (!bestGoalMotion_ && !goalMotions_.empty())
                 {
+                    std::cout << "----checkForSolution-----!bestGoalMotion_ && !goalMotions_.empty()----cost_" << motion->cost << std::endl;
                     // We have found our first solution, store it as the best. We only add one
                     // vertex at a time, so there can only be one goal vertex at this moment.
                     bestGoalMotion_ = goalMotions_.front();
@@ -483,6 +482,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 }
                 else
                 {
+                    std::cout << "---------checkForSolution------------cost_" << motion->cost << std::endl;
                     // We already have a solution, iterate through the list of goal vertices
                     // and see if there's any improvement.
                     for (auto &goalMotion : goalMotions_)
@@ -490,6 +490,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                         // Is this goal motion better than the (current) best?
                         if (opt_->isCostBetterThan(goalMotion->cost, bestCost_))
                         {
+                            std::cout << "---------better path found --- -" << std::endl;
                             bestGoalMotion_ = goalMotion;
                             bestCost_ = bestGoalMotion_->cost;
                             updatedSolution = true;
@@ -507,11 +508,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
                 {
                     if (useTreePruning_)
                     {
+                        std::cout << "---------useTreePruning_ --- -" << std::endl;
                         pruneTree(bestCost_);
                     }
 
                     if (intermediateSolutionCallback)
                     {
+                        std::cout << "---------intermediateSolutionCallback --- -" << std::endl;
                         std::vector<const base::State *> spath;
                         Motion *intermediate_solution =
                             bestGoalMotion_->parent;  // Do not include goal state to simplify code.
@@ -558,6 +561,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTstar::solve(const base::PlannerTer
     // Add what we found
     if (newSolution)
     {
+        std::cout << "---------newSolution -- **/ --- -" << std::endl;
         ptc.terminate();
         // construct the solution path
         std::vector<Motion *> mpath;
@@ -614,6 +618,7 @@ void ompl::geometric::RRTstar::getNeighbors(Motion *motion, std::vector<Motion *
         double r = std::min(
             maxDistance_, r_rrt_ * std::pow(log(cardDbl) / cardDbl, 1 / static_cast<double>(si_->getStateDimension())));
         nn_->nearestR(motion, r, nbh);
+        std::cout << "r :-\t" << r << std::endl;
     }
 }
 

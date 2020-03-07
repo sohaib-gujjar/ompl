@@ -135,6 +135,7 @@ void ompl::geometric::QRRTStarImpl::grow()
         for(unsigned int i=0; i< nearestNbh.size(); i++)
         {
             Configuration* q_near = nearestNbh.at(i);
+            if (q_near->isGoal || q_near->isStart) continue;
 
             // nearest neighbor
             if (q_nearest == q_near)
@@ -177,15 +178,16 @@ void ompl::geometric::QRRTStarImpl::grow()
         q_new->cost = min_cost;
         q_new->parent = q_min;
         q_min->children.push_back(q_new);
-
+        
         //nearestDatastructure_->add(q_new);
         
         // (7) Rewire the tree
+        bool rewired = false;
         for (unsigned int i=0 ; i< nearestNbh.size(); i++)
         {
             Configuration* q_near = nearestNbh.at(i);
             
-            if (q_near != q_new->parent)
+            if (q_near != q_new->parent && !q_near->isGoal && !q_near->isStart)
             {
                 base::Cost line_cost;
                 if(symmetric_) {
@@ -224,10 +226,11 @@ void ompl::geometric::QRRTStarImpl::grow()
                         q_near->parent = q_new;
                         q_near->lineCost = line_cost;
                         q_near->cost = new_cost;
-                        q_new->children.push_back(q_near);
+                        q_near->parent->children.push_back(q_near);
                         
                         // update node's children costs
                         updateChildCosts(q_near);
+                        rewired = true;
                     }
                 }
             }
@@ -240,21 +243,37 @@ void ompl::geometric::QRRTStarImpl::grow()
         if (satisfied)
         {
             std::cout << "goal satisfied\tcost_" << q_new->cost << "\tid_" << id_  << std::endl;
+            // add goal for graph_
             if(goalConfigurations_.empty())
             {
                 vGoal_ = addConfiguration(qGoal_);
                 addEdge(q_nearest->index, vGoal_);
             }
-            // qGoal_->parent->children.push_back(qGoal_);
             goalConfigurations_.push_back(q_new);
 
+            // check if new state cost is better then previously satisfied cost
             if (opt_->isCostBetterThan(q_new->cost, bestCost_))
             {
+                std::cout << "---------better path found --- -" << q_new->cost << std::endl;
                 qGoal_->parent = q_new;
                 bestGoalConfiguration_ = q_new;
                 bestCost_ = bestGoalConfiguration_->cost;
             }
             hasSolution_ = true;
+        }
+
+        // update cost if tree is rewired
+        if (rewired && !goalConfigurations_.empty())
+        {
+            for (int i = 0; i < goalConfigurations_.size(); i++)
+            {
+                if (opt_->isCostBetterThan(goalConfigurations_.at(i)->cost, bestCost_))
+                {
+                    bestGoalConfiguration_ = goalConfigurations_.at(i);
+                    bestCost_ = bestGoalConfiguration_->cost;
+                    std::cout << "---------re better path found --- -" << bestCost_ << "\t\t" << bestGoalConfiguration_->index << std::endl;
+                }
+            }
         }
     }
 }
@@ -277,7 +296,7 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
         
         Configuration *intermediate_node = bestGoalConfiguration_;
         
-        while (intermediate_node != nullptr)
+        while (intermediate_node->parent != nullptr)
         {
             path->append(intermediate_node->state);
             intermediate_node = intermediate_node->parent;
@@ -295,27 +314,64 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
 void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
 {
     OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
-    //BaseT::getPlannerData(data);
+    BaseT::getPlannerData(data);
 
-    std::vector<Configuration *> motions;
+    //Planner::getPlannerData(data);
+
+    //std::cout << "motions :- " << motions.size() << std::endl;
+
+    /*std::vector<Configuration *> motions;
+    if (nearestDatastructure_)
+        nearestDatastructure_->list(motions);*/
+
+    /*if (bestGoalConfiguration_)
+        data.addGoalVertex(base::PlannerDataVertex(bestGoalConfiguration_->state));
+    
+    //data.addStartVertex(base::PlannerDataVertex(qStart_->state));
+
+    for (int i = 0; i < motions.size(); i++)
+    {
+        //std::cout << motions.at(i)->index << "," << motions.at(i)->parent->index << "\t";
+    }
+    for (int i = 0; i < motions.size(); i++)
+    {
+        std::cout << motions.at(i)->index << "," << motions.at(i)->parent->index << "\t";
+        if (motions.at(i)->parent)
+            data.addEdge(base::PlannerDataVertex(motions.at(i)->parent->state),
+             base::PlannerDataVertex(motions.at(i)->state));
+    }
+
+    /*std::vector<Configuration *> motions;
     if (nearestDatastructure_)
         nearestDatastructure_->list(motions);
 
     if (bestGoalConfiguration_)
         data.addGoalVertex(base::PlannerDataVertex(bestGoalConfiguration_->state));
+    
+    if(qStart_)
+        data.addStartVertex(base::PlannerDataVertex(qStart_->state));
+
+
+    for (auto &motion : motions)
+    {
+        if (motion->parent == nullptr)
+            data.addStartVertex(base::PlannerDataVertex(motion->state));
+        else
+            data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
+    }
+
 
     for (int i = 0; i < motions.size(); i++)
     {
-        if (motions[i]->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
-        else
-            data.addEdge(base::PlannerDataVertex(motions[i]->parent->state), base::PlannerDataVertex(motions[i]->state));
+        if (motions.at(i)->parent != nullptr)
+            data.addEdge(base::PlannerDataVertex(motions.at(i)->parent->state),
+             base::PlannerDataVertex(motions.at(i)->state));
     }
 
-    //data.addGoalVertex(base::PlannerDataVertex(qGoal_->state));
-    //data.addStartVertex(base::PlannerDataVertex(qStart_->state));
+    /*data.addGoalVertex(base::PlannerDataVertex(bestGoalConfiguration_->state));
+    data.addStartVertex(base::PlannerDataVertex(qStart_->state));
 
-    //addChildrenToPlannerData(qStart_, data);
+    addChildrenToPlannerData(qStart_, data);*/
 }
 
 void ompl::geometric::QRRTStarImpl::addChildrenToPlannerData(Configuration* q, base::PlannerData &data) const
@@ -324,11 +380,11 @@ void ompl::geometric::QRRTStarImpl::addChildrenToPlannerData(Configuration* q, b
     {
         if (!q->children.empty())
         {
-            /*for (std::size_t i = 0; i < q->children.size(); ++i)
+            for (std::size_t i = 0; i < q->children.size(); ++i)
             {
-                // data.addEdge(base::PlannerDataVertex(q->state), base::PlannerDataVertex(q->children[i]->state));
-                // addChildrenToPlannerData(q->children[i], data);
-            }*/
+                data.addEdge(base::PlannerDataVertex(q->state), base::PlannerDataVertex(q->children[i]->state));
+                addChildrenToPlannerData(q->children[i], data);
+            }
         }
     }
 }
