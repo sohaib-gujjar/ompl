@@ -455,7 +455,7 @@ namespace ompl
             double r_rrt_{0.};
 
             /** \brief Option to delay and reduce collision checking within iterations */
-            bool delayCC_{false};
+            bool delayCC_{true};
 
             /** \brief Objective we're optimizing */
             base::OptimizationObjectivePtr opt_;
