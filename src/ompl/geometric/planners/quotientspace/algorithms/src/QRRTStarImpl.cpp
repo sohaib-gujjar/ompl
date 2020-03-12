@@ -135,6 +135,7 @@ void ompl::geometric::QRRTStarImpl::grow()
         for(unsigned int i=0; i< nearestNbh.size(); i++)
         {
             Configuration* q_near = nearestNbh.at(i);
+            if (q_near->isGoal || q_near->isStart) continue;
 
             // nearest neighbor
             if (q_nearest == q_near)
@@ -177,7 +178,7 @@ void ompl::geometric::QRRTStarImpl::grow()
         q_new->cost = min_cost;
         q_new->parent = q_min;
         q_min->children.push_back(q_new);
-
+        
         //nearestDatastructure_->add(q_new);
         
         // (7) Rewire the tree
@@ -186,7 +187,7 @@ void ompl::geometric::QRRTStarImpl::grow()
         {
             Configuration* q_near = nearestNbh.at(i);
             
-            if (q_near != q_new->parent && !q_near->isStart)
+            if (q_near != q_new->parent && !q_near->isGoal && !q_near->isStart)
             {
                 base::Cost line_cost;
                 if(symmetric_) {
@@ -225,7 +226,7 @@ void ompl::geometric::QRRTStarImpl::grow()
                         q_near->parent = q_new;
                         q_near->lineCost = line_cost;
                         q_near->cost = new_cost;
-                        q_new->children.push_back(q_near);
+                        q_near->parent->children.push_back(q_near);
                         
                         // update node's children costs
                         updateChildCosts(q_near);
@@ -290,7 +291,7 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
 {
     if (hasSolution_)
     {
-        /*auto path(std::make_shared<PathGeometric>(getBundle()));
+        auto path(std::make_shared<PathGeometric>(getBundle()));
         path->append(qGoal_->state);
         
         Configuration *intermediate_node = bestGoalConfiguration_;
@@ -301,24 +302,6 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
             intermediate_node = intermediate_node->parent;
         }
         path->reverse();
-        solution = path;*/
-        // construct the solution path
-
-        std::cout << "path-------c_" << bestCost_ << "\t\tI_" << bestGoalConfiguration_->index << std::endl;
-        std::vector<Configuration *> mpath;
-        Configuration *iterMotion = bestGoalConfiguration_;
-        while (iterMotion != nullptr)
-        {
-            mpath.push_back(iterMotion);
-            iterMotion = iterMotion->parent;
-        }
-        std::cout << " ----- -- path-------L_" << mpath.size()  << std::endl;
-        // set the solution path
-        auto path(std::make_shared<PathGeometric>(getBundle()));
-        for (int i = mpath.size() - 1; i >= 0; --i)
-            path->append(mpath[i]->state);
-
-        // Add the solution path.
         solution = path;
         return true;
     }
@@ -330,8 +313,33 @@ bool ompl::geometric::QRRTStarImpl::getSolution(base::PathPtr &solution)
 
 void ompl::geometric::QRRTStarImpl::getPlannerData(base::PlannerData &data) const
 {
-    //OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
+    OMPL_DEBUG("Roadmap has %d vertices", nearestDatastructure_->size());
     BaseT::getPlannerData(data);
+
+    //Planner::getPlannerData(data);
+
+    //std::cout << "motions :- " << motions.size() << std::endl;
+
+    /*std::vector<Configuration *> motions;
+    if (nearestDatastructure_)
+        nearestDatastructure_->list(motions);*/
+
+    /*if (bestGoalConfiguration_)
+        data.addGoalVertex(base::PlannerDataVertex(bestGoalConfiguration_->state));
+    
+    //data.addStartVertex(base::PlannerDataVertex(qStart_->state));
+
+    for (int i = 0; i < motions.size(); i++)
+    {
+        //std::cout << motions.at(i)->index << "," << motions.at(i)->parent->index << "\t";
+    }
+    for (int i = 0; i < motions.size(); i++)
+    {
+        std::cout << motions.at(i)->index << "," << motions.at(i)->parent->index << "\t";
+        if (motions.at(i)->parent)
+            data.addEdge(base::PlannerDataVertex(motions.at(i)->parent->state),
+             base::PlannerDataVertex(motions.at(i)->state));
+    }
 
     /*std::vector<Configuration *> motions;
     if (nearestDatastructure_)
