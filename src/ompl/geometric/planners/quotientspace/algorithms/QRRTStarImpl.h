@@ -64,7 +64,6 @@ namespace ompl
             }
             virtual bool getSolution(ompl::base::PathPtr &solution) override;
             virtual void getPlannerData(ompl::base::PlannerData &data) const override;
-            void addChildrenToPlannerData(Configuration *q, base::PlannerData &data) const;
 
         public:
 
