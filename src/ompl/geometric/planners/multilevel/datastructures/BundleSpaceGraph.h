@@ -240,8 +240,10 @@ namespace ompl
 
             virtual void setMetric(const std::string& sMetric) override;
             virtual void setPropagator(const std::string& sPropagator) override;
-            virtual void setImportance(const std::string& sImportance);
-            virtual void setGraphSampler(const std::string& sGraphSampler);
+            virtual void setImportance(const std::string& sImportance) override;
+            virtual void setGraphSampler(const std::string& sGraphSampler) override;
+
+            virtual void setK(unsigned int k) override {};
 
             BundleSpaceGraphSamplerPtr getGraphSampler();
 

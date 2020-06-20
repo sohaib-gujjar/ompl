@@ -49,6 +49,7 @@
 ompl::geometric::QMPImpl::QMPImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QMPImpl" + std::to_string(id_));
+    //ompl::base::Planner::declareParam<unsigned int>("knn", this, &ompl::geometric::QMPImpl::setK, &ompl::geometric::QMPImpl::getK);
 
     setMetric("geodesic");
     setGraphSampler("randomedge");
@@ -67,6 +68,18 @@ void ompl::geometric::QMPImpl::clear()
 {
     BaseT::clear();
     pdf.clear();
+}
+
+void ompl::geometric::QMPImpl::setK(unsigned int k)
+{
+    k_NearestNeighbors_ = k;
+    std::cout << "(" << name_ << ")" << "K is set to " << k_NearestNeighbors_ << std::endl;
+    OMPL_DEBUG("K is set to %i", k_NearestNeighbors_);
+}
+
+unsigned int ompl::geometric::QMPImpl::getK()
+{
+    return k_NearestNeighbors_;
 }
 
 ompl::geometric::BundleSpaceGraph::Vertex 
@@ -95,6 +108,7 @@ void ompl::geometric::QMPImpl::updatePDF(Configuration *q)
 
 unsigned int ompl::geometric::QMPImpl::computeK()
 {
+    //std::cout << "K(" << name_ << ")=" << k_NearestNeighbors_ << std::endl;
     return k_NearestNeighbors_;
 }
 
@@ -106,7 +120,7 @@ void ompl::geometric::QMPImpl::grow()
         vGoal_ = addConfiguration(qGoal_);
         firstRun_ = false;
 
-        if(hasBaseSpace())
+        if(getFeasiblePathRestriction() &&  hasBaseSpace())
         {
             if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {

@@ -69,6 +69,8 @@ namespace ompl
 
             virtual Vertex addConfiguration(Configuration *q) override;
 
+            void setK(unsigned int k) override {};
+
         protected:
 
             /** \brief Maximum failures limit for terminating the algorithm similar to SPARS */

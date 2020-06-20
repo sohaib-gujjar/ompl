@@ -319,3 +319,55 @@ void ompl::geometric::BundleSpaceSequence<T>::getPlannerData(ompl::base::Planner
     OMPL_DEBUG("Graph has %d/%d vertices/edges", 
         data.numVertices(), data.numEdges());
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class T>
+void ompl::geometric::BundleSpaceSequence<T>::setMetric(const std::string& sMetric)
+{
+    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        BundleSpace *qs = bundleSpaces_.at(k);
+        qs->setMetric(sMetric);
+    }
+}
+
+template <class T>
+void ompl::geometric::BundleSpaceSequence<T>::setImportance(const std::string& sImportance)
+{
+    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        BundleSpace *qs = bundleSpaces_.at(k);
+        qs->setImportance(sImportance);
+    }
+}
+
+template <class T>
+void ompl::geometric::BundleSpaceSequence<T>::setGraphSampler(const std::string& sGraphSampler)
+{
+    for (unsigned int k = 0; k < bundleSpaces_.size(); k++)
+    {
+        BundleSpace *qs = bundleSpaces_.at(k);
+        qs->setGraphSampler(sGraphSampler);
+    }
+}
+
+template <class T>
+void ompl::geometric::BundleSpaceSequence<T>::setK(unsigned int k)
+{
+    for (unsigned int m = 0; m < bundleSpaces_.size(); m++)
+    {
+        BundleSpace *qs = bundleSpaces_.at(m);
+        qs->setK(k);
+    }
+}
+
+template <class T>
+void ompl::geometric::BundleSpaceSequence<T>::setFeasiblePathRestriction(bool val)
+{
+    for (unsigned int m = 0; m < bundleSpaces_.size(); m++)
+    {
+        BundleSpace *qs = bundleSpaces_.at(m);
+        qs->setFeasiblePathRestriction(val);
+    }
+}

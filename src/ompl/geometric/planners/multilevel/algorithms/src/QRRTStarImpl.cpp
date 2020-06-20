@@ -51,12 +51,12 @@
 ompl::geometric::QRRTStarImpl::QRRTStarImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : BaseT(si, parent_)
 {
     setName("QRRTStarImpl" + std::to_string(id_));
-    Planner::declareParam<double>(
+    /*Planner::declareParam<double>(
         "useKNearest_", 
         this, 
         &ompl::geometric::QRRTStarImpl::setKNearest, 
         &ompl::geometric::QRRTStarImpl::getKNearest, 
-        "0,1");
+        "0,1");*/
 
     symmetric_ = getBundle()->getStateSpace()->hasSymmetricInterpolate();
 
@@ -89,7 +89,7 @@ void ompl::geometric::QRRTStarImpl::grow()
         goal_ = pdef_->getGoal().get();
         firstRun_ = false;
 
-        if(hasBaseSpace())
+        if(getFeasiblePathRestriction() && hasBaseSpace())
         {
             if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {

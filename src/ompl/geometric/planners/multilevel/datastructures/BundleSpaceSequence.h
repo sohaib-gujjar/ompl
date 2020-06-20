@@ -89,6 +89,13 @@ namespace ompl
 
             void setStopLevel(unsigned int level_);
 
+            // for benchmarks
+            void setMetric(const std::string& sMetric);
+            void setImportance(const std::string& sImportance);
+            void setGraphSampler(const std::string& sGraphSampler);
+            void setK(unsigned int k);
+            void setFeasiblePathRestriction(bool val);
+
         protected:
 
             /** \brief Solution paths on each BundleSpace (TODO: put into pdefs)*/

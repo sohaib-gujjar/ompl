@@ -72,7 +72,7 @@ void ompl::geometric::SPQRImpl::grow()
         init();
         firstRun_ = false;
 
-        if(hasBaseSpace())
+        if(getFeasiblePathRestriction() && hasBaseSpace())
         {
             if(getPathRestriction()->hasFeasibleSection(qStart_, qGoal_))
             {

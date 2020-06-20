@@ -73,6 +73,8 @@ namespace ompl
             void deleteConfiguration(Configuration *q) override;
             void updatePDF(Configuration *q);
 
+            virtual void setK(unsigned int k) override;
+            unsigned int getK();
         protected:
 
             std::vector<base::State *> randomWorkStates_;

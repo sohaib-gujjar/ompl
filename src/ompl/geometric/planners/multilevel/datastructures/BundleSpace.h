@@ -153,6 +153,26 @@ namespace ompl
 
             bool isDynamic() const;
 
+
+            // for benchmarks
+            //virtual void setMetric(const std::string& sMetric) = 0;
+            virtual void setImportance(const std::string& sImportance) = 0;
+            virtual void setGraphSampler(const std::string& sGraphSampler) = 0;
+
+
+            virtual void setK(unsigned int k) = 0;
+
+            bool feasiblePathRestriction_{true};
+            void setFeasiblePathRestriction(bool val)
+            {
+                feasiblePathRestriction_ = val;
+            }
+            bool getFeasiblePathRestriction()
+            {
+                return feasiblePathRestriction_;
+            }
+
+
         private:
 
             ompl::base::SpaceInformationPtr Bundle{nullptr};
